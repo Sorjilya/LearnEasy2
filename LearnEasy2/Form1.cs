@@ -1022,7 +1022,7 @@ namespace LearnEasy2
             progressBar1.Visible = true;
             if (difficulty == 0)
             {
-                progressBar1.Maximum = 1400;
+                progressBar1.Maximum = 1500;
             }
             if (difficulty == 1)
             {
