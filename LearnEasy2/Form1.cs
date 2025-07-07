@@ -162,7 +162,7 @@ namespace LearnEasy2
             btnLanguage.FlatAppearance.BorderSize = 0;
             btnLanguage.Click += (s, e) =>
             {
-                SqliteFunc.GenerateFakeGameResults("Matches", 100, 3);
+                GamesFunc.GenerateWordVariations("Hello", 10);
             };
             panelSettings.Controls.Add(btnLanguage);
 
