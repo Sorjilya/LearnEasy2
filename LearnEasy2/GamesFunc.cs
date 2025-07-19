@@ -53,7 +53,7 @@ namespace LearnEasy2
 			}
             return false;
 		}
-        public static int[] GenerateValidRandomIntVector(int length, int minValue, int maxValue)
+        private static int[] GenerateValidRandomIntVector(int length, int minValue, int maxValue)
         {
             int[] res = GenerateRandomIntVector(length, minValue, maxValue);
 			if (IsRandomArrayValid(res))
@@ -65,7 +65,7 @@ namespace LearnEasy2
                 return GenerateValidRandomIntVector(length, minValue, maxValue);
             }
         }
-        public static bool AreIntArraysCyclicalEqual(int[] ar1, int[] ar2)
+        private static bool AreIntArraysCyclicalEqual(int[] ar1, int[] ar2)
 		{
             if (ar1.Length != ar2.Length)
 			{
@@ -88,7 +88,7 @@ namespace LearnEasy2
 			}
             return false;
 		}
-        public static int[] GenerateValidRandomDifferentIntVector(int length, int minValue, int maxValue, List<int[]> prevRand, string word)
+        private static int[] GenerateValidRandomDifferentIntVector(int length, int minValue, int maxValue, List<int[]> prevRand, string word)
         {
             int[] res = GenerateValidRandomIntVector(length, minValue, maxValue);
             bool isDif = true;
@@ -122,8 +122,13 @@ namespace LearnEasy2
             else
                 return f * Factorial(f - 1);
         }
-        public static string[] GenerateWordVariations(string word, int count)
+        private static string[] GenerateWordVariations(string word, int count, int Varlevel)
 		{
+            int lvl = Varlevel;
+            if(Varlevel < 2)
+			{
+                lvl = 2;
+			}
             int maxCount = Factorial(word.Length) / Factorial(word.Length - word.Length/2)/(word.Length / 2);
             if (count > maxCount)
 			{
@@ -133,7 +138,7 @@ namespace LearnEasy2
             List<int[]> prevRand = new List<int[]>();
             for (int i = 0; i < count; i++)
             {
-                int[] randNum = GenerateValidRandomDifferentIntVector(word.Length / 2, 0, word.Length, prevRand, word);
+                int[] randNum = GenerateValidRandomDifferentIntVector(lvl, 0, word.Length, prevRand, word);
                 prevRand.Add(randNum);
                 char[] tmpWordChars = word.ToLower().ToCharArray();
                 for (int j = 0; j < randNum.Length-1; j++)
@@ -148,5 +153,28 @@ namespace LearnEasy2
             return words;
             // TODO: исправить повторяющиеся буквы(+макс кол-во)
 		}
+        public static string[] GenerateWordsForSpellCheck(string word, int count, int VariationLevel)
+        {
+            string[] words = new string[count + 1];
+            var varwords = GenerateWordVariations(word, count, VariationLevel);
+            var point = GenerateRandomIntVector(1, 0, count + 1);
+            int j = 0;
+            char[] tmpWordChars = word.ToLower().ToCharArray();
+            tmpWordChars[0] = Char.ToUpper(tmpWordChars[0]);
+            word = new string(tmpWordChars);
+            for (int i = 0; i < count + 1; i++)
+            {
+                if (i == point[0])
+                {
+                    words[i] = word;
+                }
+				else
+                {
+                    words[i] = varwords[j];
+                    j++;
+				}
+            }
+            return words;
+        }
     }
 }

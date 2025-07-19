@@ -153,7 +153,6 @@ namespace LearnEasy2
                     int w1id = SqliteFunc.InsertWordAndReturnId(txtWord1.Text.Trim(), cmbLang1.SelectedItem.ToString());
                     int w2id = SqliteFunc.InsertWordAndReturnId(txtWord2.Text.Trim(), cmbLang2.SelectedItem.ToString());
                     SqliteFunc.InsertWordPair(w1id, w2id, groupid);
-                    MessageBox.Show("Word added successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
 
                 this.DialogResult = DialogResult.OK;

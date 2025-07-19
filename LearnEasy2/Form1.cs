@@ -52,17 +52,24 @@ namespace LearnEasy2
             ShowPanel(panelGameCards);
             InitGameCardsPanel();
         }
+        private void btnSpellCheck_Click(object sender, EventArgs e)
+        {
+            ShowPanel(panelGameSpellCheck);
+            InitGameSpellCheckPanel();
+        }
         private void ShowPanel(Panel panelToShow)
         {
             panelWords.Visible = false;
             panelGames.Visible = false;
             panelSettings.Visible = false;
             panelGameMatches.Visible = false;
+            panelGameCards.Visible = false;
+            panelGameSpellCheck.Visible = false;
 
             panelToShow.Visible = true;
             panelToShow.BringToFront();
         }
-        public void LoadWordsForGroup(string groupName, DataGridView dataGrid, ComboBox groupCombo)
+        public void LoadWordsForGroup(string groupName, DataGridView dataGrid)
         {
             dataGrid.Rows.Clear();
             dataGrid.Columns.Clear();
@@ -78,8 +85,6 @@ namespace LearnEasy2
 			}
             dataGrid.Columns.Add("Word1", "Word");
             dataGrid.Columns.Add("Word2", "Translation");
-            List<WordEntry> wordsfrom = new List<WordEntry>();
-            List<WordEntry> wordsto = new List<WordEntry>();
             var wordsFromGroups = SqliteFunc.GetAllGroupWords(geId, Lanfrom, Lanto);
             for(int i = 0; i < wordsFromGroups.Count; i ++)
             {
@@ -162,7 +167,7 @@ namespace LearnEasy2
             btnLanguage.FlatAppearance.BorderSize = 0;
             btnLanguage.Click += (s, e) =>
             {
-                GamesFunc.GenerateWordVariations("Hello", 10);
+                //GamesFunc.GenerateWordVariations("Hello", 10);
             };
             panelSettings.Controls.Add(btnLanguage);
 
@@ -271,10 +276,10 @@ namespace LearnEasy2
                 if (groupCombo.SelectedItem != null)
                 {
                     string selectedGroup = groupCombo.SelectedItem.ToString();
-                    LoadWordsForGroup(selectedGroup, dataGrid, groupCombo);
+                    LoadWordsForGroup(selectedGroup, dataGrid);
                 }
             };
-            LoadWordsForGroup(groupCombo.SelectedItem.ToString(), dataGrid, groupCombo);
+            LoadWordsForGroup(groupCombo.SelectedItem.ToString(), dataGrid);
 
             panelWords.Controls.Add(groupCombo);
             // === Кнопка Add Word ===
@@ -310,7 +315,7 @@ namespace LearnEasy2
                     string group = addForm.Group;
 
                 }
-                LoadWordsForGroup(groupCombo.SelectedItem.ToString(), dataGrid, groupCombo);
+                LoadWordsForGroup(groupCombo.SelectedItem.ToString(), dataGrid);
             };
 
 
@@ -337,7 +342,7 @@ namespace LearnEasy2
                     string word1 = deleteForm.Word1;
 
                 }
-                LoadWordsForGroup(groupCombo.SelectedItem.ToString(), dataGrid, groupCombo);
+                LoadWordsForGroup(groupCombo.SelectedItem.ToString(), dataGrid);
             };
             panelWords.Controls.Add(btnDeleteWord);
 
@@ -363,7 +368,7 @@ namespace LearnEasy2
                 {
                     string word1 = addForm.Word1;
                 }
-                LoadWordsForGroup(groupCombo.SelectedItem.ToString(), dataGrid, groupCombo);
+                LoadWordsForGroup(groupCombo.SelectedItem.ToString(), dataGrid);
                 InitWordPanel();
             };
             panelWords.Controls.Add(btnAddGroup);
@@ -396,7 +401,7 @@ namespace LearnEasy2
                     //string word1 = deleteForm.Word1;
 
                 }
-                LoadWordsForGroup(groupCombo.SelectedItem.ToString(), dataGrid, groupCombo);
+                LoadWordsForGroup(groupCombo.SelectedItem.ToString(), dataGrid);
                 InitWordPanel();
             };
             panelWords.Controls.Add(btnDeleteGroup);
@@ -453,17 +458,7 @@ namespace LearnEasy2
                 Anchor = AnchorStyles.Top
             };
             btnSpellCheck.FlatAppearance.BorderSize = 0;
-            btnSpellCheck.Click += (s, e) =>
-            {
-                var langForm = new SelectLearnLanForm(Lanfrom, Lanto);
-                if (langForm.ShowDialog() == DialogResult.OK)
-                {
-                    Lanfrom = langForm.SelectedFrom;
-                    Lanto = langForm.SelectedTo;
-                    /*MessageBox.Show($"Язык изучения: {Lanfrom} → {Lanto}");*/
-                }
-
-            };
+            btnSpellCheck.Click += new System.EventHandler(this.btnSpellCheck_Click);
             panelGames.Controls.Add(btnSpellCheck);
         }
         private void InitGameMatchesPanel()
@@ -664,6 +659,105 @@ namespace LearnEasy2
             };
             panelGameCards.Controls.Add(btnCancel);
         }
+        private void InitGameSpellCheckPanel()
+        {
+            panelGameSpellCheck.Controls.Clear();
+            panelGameSpellCheck.BackColor = Color.FromArgb(204, 255, 204); // светло-зелёный фон
+            Label lblFrom = new Label
+            {
+                Text = "Group:",
+                Location = new Point(100, 180),
+                AutoSize = true,
+                Font = new Font("Segoe UI", 16, FontStyle.Bold)
+            };
+            panelGameSpellCheck.Controls.Add(lblFrom);
+
+            ComboBox cmbGroup = new ComboBox
+            {
+                Location = new Point(300, 180),
+                Size = new Size(170, 40),
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Font = new Font("Segoe UI", 13)
+            };
+            var groups = SqliteFunc.GetAllGroups();
+            List<string> groupNamesForSpellCheck = new List<string>();
+            for (int i = 0; i < groups.Count; i++)
+            {
+                if (SqliteFunc.GetWordPairCountByGroup(groups[i].Id) > 0)
+                {
+                    groupNamesForSpellCheck.Add(groups[i].Name);
+                }
+            }
+            cmbGroup.Items.AddRange(groupNamesForSpellCheck.ToArray());
+            cmbGroup.SelectedIndex = 0;
+            panelGameSpellCheck.Controls.Add(cmbGroup);
+
+            Label lblDif = new Label
+            {
+                Text = "Difficulty:",
+                Location = new Point(100, 130),
+                AutoSize = true,
+                Font = new Font("Segoe UI", 16, FontStyle.Bold)
+            };
+            panelGameSpellCheck.Controls.Add(lblDif);
+
+            ComboBox cmbDif = new ComboBox
+            {
+                Location = new Point(300, 130),
+                Size = new Size(170, 40),
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Font = new Font("Segoe UI", 13)
+            };
+            cmbDif.Items.AddRange(new[] { "Easy", "Medium", "Hard" });
+            cmbDif.SelectedIndex = 0;
+            panelGameSpellCheck.Controls.Add(cmbDif);
+
+            Button btnStart = new Button
+            {
+                Text = "Start",
+                DialogResult = DialogResult.OK,
+                Location = new Point(150, 300),
+                Size = new Size(100, 35),
+                BackColor = Color.FromArgb(33, 150, 83),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 10, FontStyle.Bold)
+            };
+            btnStart.FlatAppearance.BorderSize = 0;
+            btnStart.Click += (s, e) =>
+            {
+                var gr = SqliteFunc.GetAllGroups();
+                int groupid = -1;
+                for (int i = 0; i < gr.Count; i++)
+                {
+                    if (gr[i].Name == cmbGroup.SelectedItem.ToString())
+                    {
+                        groupid = gr[i].Id;
+                    }
+                }
+                GameSpellCheckRound(cmbDif.SelectedIndex, groupid);
+            };
+            panelGameSpellCheck.Controls.Add(btnStart);
+
+            Button btnCancel = new Button
+            {
+                Text = "Exit",
+                DialogResult = DialogResult.Cancel,
+                Location = new Point(400, 300),
+                Size = new Size(100, 35),
+                BackColor = Color.FromArgb(33, 150, 83),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 10, FontStyle.Bold)
+            };
+            btnCancel.FlatAppearance.BorderSize = 0;
+            btnCancel.Click += (s, e) =>
+            {
+                ShowPanel(panelGames);
+                InitGamesPanel();
+            };
+            panelGameSpellCheck.Controls.Add(btnCancel);
+        }
         private void Make_Button_Clicked(Button TButton, int clicked = -1)
         {
             if (clicked != 0 && clicked != 1)
@@ -730,6 +824,49 @@ namespace LearnEasy2
                 InitGamesPanel();
             };
             panelGameCards.Controls.Add(btnOk);
+            curPoints = 0;
+        }
+        private void SpellCheckEndGame()
+        {
+            prTime = 0;
+            Gamenow = -1;
+            timer1.Enabled = false;
+            SqliteFunc.InsertGameResult("SpellCheck", curPoints);
+            int padding = 20;
+            int spacing = 30;
+            int btnWidth = 350;
+            int btnHeight = 70;
+            int startY = 200;
+            panelGameSpellCheck.Controls.Clear();
+            panelGameSpellCheck.BackColor = Color.FromArgb(204, 255, 204); // светло-зелёный фон
+            int maxScore = SqliteFunc.GetMaxGameScore("SpellCheck");
+            Label lblScore = new Label
+            {
+                Text = "Your score: " + curPoints.ToString() + "\nMax Score: " + maxScore.ToString(),
+                AutoSize = true,
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+            lblScore.Location = new Point((panelGameSpellCheck.Width - lblScore.Width - padding) / 2, 100);
+            panelGameSpellCheck.Controls.Add(lblScore);
+            var btnOk = new Button
+            {
+                Text = "Ok",
+                Size = new Size(btnWidth, btnHeight),
+                Location = new Point((panelGameSpellCheck.Width - btnWidth) / 2, startY + btnHeight + spacing),
+                BackColor = Color.FromArgb(33, 150, 83),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                Anchor = AnchorStyles.Top
+            };
+            btnOk.FlatAppearance.BorderSize = 0;
+            btnOk.Click += (s, e) =>
+            {
+                ShowPanel(panelGames);
+                InitGamesPanel();
+            };
+            panelGameSpellCheck.Controls.Add(btnOk);
             curPoints = 0;
         }
         private void MatchesEndGame()
@@ -1088,7 +1225,6 @@ namespace LearnEasy2
             };
             panelGameCards.Controls.Add(lblPoints);
 
-            // TODO: Подключить обработку нажатия
             btnConfirm.Click += (s, e) =>
             {
                 string userAnswer = txtInput.Text.Trim().ToLower();
@@ -1107,6 +1243,109 @@ namespace LearnEasy2
                 }
             };
         }
+        private void GameSpellCheckRound(int difficulty, int group)
+        {
+            Gamenow = 3;
+            panelGameSpellCheck.Controls.Clear();
+            panelGameSpellCheck.BackColor = Color.FromArgb(204, 255, 204); progressBar1.Location = new Point(100, 30);
+            progressBar1.Size = new Size(panelGameMatches.Width - 200, 30);
+            progressBar1.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            progressBar1.Visible = true;
+
+            int spacingX = 40;
+            int spacingY = 300;
+            int buttonWidth = (panelGameMatches.Width - 4 * spacingX) / 3;
+            int buttonHeight = 60;
+            Font btnFont = new Font("Segoe UI", 11F, FontStyle.Bold);
+            Color btnBack = Color.FromArgb(33, 150, 83);
+            Color btnFore = Color.White;
+
+
+            if (difficulty == 0)
+            {
+                progressBar1.Maximum = 1000;
+            }
+            if (difficulty == 1)
+            {
+                progressBar1.Maximum = 700;
+            }
+            if (difficulty == 2)
+            {
+                progressBar1.Maximum = 400;
+            }
+            progressBar1.Value = progressBar1.Maximum;
+            timer1.Enabled = true;
+            progressBar1.Value = progressBar1.Maximum;
+            panelGameSpellCheck.Controls.Add(progressBar1);
+            var words = SqliteFunc.GetAllGroupWords(group, Lanfrom, Lanto);
+            var id = GamesFunc.GenerateRandomIntVector(1, 0, words.Count);
+            var word = words[id[0]];
+            double koef = 1.0 / ((difficulty + 1)* (difficulty + 1));
+            int lvl = (int)Math.Round(word.Item2.Length * koef - 2 * koef + 2);
+            var wordVariations = GamesFunc.GenerateWordsForSpellCheck(word.Item2, 2, lvl);
+
+            // === Label со словом ===
+            Label lblWord = new Label
+            {
+                Text = word.Item1,
+                Font = new Font("Segoe UI", 24F, FontStyle.Bold),
+                AutoSize = false,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Size = new Size(300, 80),
+                Location = new Point((panelGameSpellCheck.Width - 300) / 2, 150),
+                ForeColor = Color.White,
+                BackColor = Color.FromArgb(33, 150, 83)
+            };
+            panelGameSpellCheck.Controls.Add(lblWord);
+
+            List<Button> WordButtons = new List<Button>();
+
+            // Левая колонка
+            for (int i = 0; i < 3; i++)
+            {
+                Button btn = new Button
+                {
+                    Size = new Size(buttonWidth, buttonHeight),
+                    Location = new Point(spacingX + i * (buttonWidth + spacingX), spacingY),
+                    BackColor = btnBack,
+                    ForeColor = btnFore,
+                    FlatStyle = FlatStyle.Flat,
+                    Font = btnFont,
+                    Text = wordVariations[i]
+                };
+                btn.FlatAppearance.BorderSize = 0;
+                btn.Click += (s, e) =>
+                {
+                    string userAnswer = btn.Text.ToLower();
+                    string correctAnswer = word.Item2.ToLower();
+
+                    if (userAnswer == correctAnswer)
+                    {
+                        if (difficulty == 0) curPoints += 1;
+                        if (difficulty == 1) curPoints += 5;
+                        if (difficulty == 2) curPoints += 10;
+                        GameSpellCheckRound(difficulty, group);
+                    }
+                    else
+                    {
+                        SpellCheckEndGame();
+                    }
+                };
+
+                panelGameSpellCheck.Controls.Add(btn);
+                WordButtons.Add(btn);
+            }
+            // === Очки ===
+            Label lblPoints = new Label
+            {
+                Text = "Points: " + curPoints + "\nMaximum Points: " + SqliteFunc.GetMaxGameScore("SpellCheck"),
+                AutoSize = true,
+                Font = new Font("Segoe UI", 13F, FontStyle.Bold),
+                Location = new Point((panelGameSpellCheck.Width - 200) / 2, WordButtons[0].Bottom + 70),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+                panelGameSpellCheck.Controls.Add(lblPoints);
+            }
 
         private void InitWordStatisticsPanel()
         {
@@ -1477,6 +1716,16 @@ namespace LearnEasy2
                 {
                     timer1.Enabled = false;
                     CardsEndGame();
+                }
+                prTime++;
+            }
+            if (Gamenow == 3)
+            {
+                progressBar1.Value = Math.Max(0, progressBar1.Value - 1);
+                if (progressBar1.Value <= 0 && prTime > 10)
+                {
+                    timer1.Enabled = false;
+                    SpellCheckEndGame();
                 }
                 prTime++;
             }

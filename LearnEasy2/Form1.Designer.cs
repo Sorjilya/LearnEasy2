@@ -19,6 +19,7 @@ namespace LearnEasy2
         private Panel panelGames;
         private Panel panelGameMatches;
 		private Panel panelGameCards;
+		private Panel panelGameSpellCheck;
 		private Panel panelSettings;
 
         protected override void Dispose(bool disposing)
@@ -46,6 +47,7 @@ namespace LearnEasy2
 			this.panelGames = new System.Windows.Forms.Panel();
 			this.panelGameCards = new System.Windows.Forms.Panel();
 			this.panelGameMatches = new System.Windows.Forms.Panel();
+			this.panelGameSpellCheck = new System.Windows.Forms.Panel();
 			this.panelSettings = new System.Windows.Forms.Panel();
 			this.timer1 = new System.Windows.Forms.Timer(this.components);
 			this.progressBar1 = new System.Windows.Forms.ProgressBar();
@@ -189,6 +191,16 @@ namespace LearnEasy2
 			this.panelGameCards.Size = new System.Drawing.Size(760, 550);
 			this.panelGameCards.TabIndex = 2;
 			this.panelGameCards.Visible = false;
+			//
+			// panelGameSpellCheck
+			// 
+			this.panelGameSpellCheck.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(204)))), ((int)(((byte)(255)))), ((int)(((byte)(204)))));
+			this.panelGameSpellCheck.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.panelGameSpellCheck.Location = new System.Drawing.Point(140, 0);
+			this.panelGameSpellCheck.Name = "panelGameCards";
+			this.panelGameSpellCheck.Size = new System.Drawing.Size(760, 550);
+			this.panelGameSpellCheck.TabIndex = 2;
+			this.panelGameSpellCheck.Visible = false;
 			// panelSettings
 			// 
 			this.panelSettings.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(204)))), ((int)(((byte)(255)))), ((int)(((byte)(204)))));
@@ -220,6 +232,7 @@ namespace LearnEasy2
 			this.Controls.Add(this.panelWords);
 			this.Controls.Add(this.panelGames); 
 			this.Controls.Add(this.panelGameCards);
+			this.Controls.Add(this.panelGameSpellCheck);
 			this.Controls.Add(this.panelGameMatches);
 			this.Controls.Add(this.panelSettings);
 			this.Controls.Add(this.sidePanel);

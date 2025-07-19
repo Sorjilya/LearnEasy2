@@ -79,7 +79,6 @@ namespace LearnEasy2
                         SqliteFunc.DeleteWordById(word.Id);
                     }
 				}
-                MessageBox.Show("Group added successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
 
                 this.DialogResult = DialogResult.OK;

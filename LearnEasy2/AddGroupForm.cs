@@ -74,7 +74,6 @@ namespace LearnEasy2
                 }
 
                 SqliteFunc.AddGroup(txtWord1.Text);
-                MessageBox.Show("Group added successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 
 
                 this.DialogResult = DialogResult.OK;

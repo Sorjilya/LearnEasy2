@@ -81,7 +81,6 @@ namespace LearnEasy2
                     }
                 }
                 SqliteFunc.DeleteGroupById(groupid);
-                MessageBox.Show("Group added successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
 
                 this.DialogResult = DialogResult.OK;
