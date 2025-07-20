@@ -10,6 +10,13 @@ using System.Windows.Forms;
 using System.Data.SQLite;
 using OxyPlot.Axes;
 using OxyPlot;
+//TODO:
+/*
+2) свой язык
+3) запоминание выбранных языков
+4) при добавление слов учитывание выбранных языков
+5) кнопка всеобщего языка
+*/
 
 namespace LearnEasy2
 {
@@ -20,6 +27,7 @@ namespace LearnEasy2
         int curPoints = 0;
         int prTime = 0;
         int Gamenow = -1;
+        Button btnConfirmC;
         public Form1()
         {
             InitializeComponent();
@@ -69,6 +77,15 @@ namespace LearnEasy2
             panelToShow.Visible = true;
             panelToShow.BringToFront();
         }
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (Gamenow == 2 && keyData == (Keys.Enter))
+            {
+                btnConfirmC.Focus();
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
         public void LoadWordsForGroup(string groupName, DataGridView dataGrid)
         {
             dataGrid.Rows.Clear();
@@ -129,17 +146,23 @@ namespace LearnEasy2
 				{
                     btn.Click += (s, e) =>
                     {
-                        InitMatchesStatisticsPanel();
+                        InitGameStatisticsPanel("Matches");
                     };
                 }
                 if (i == 2)
                 {
                     btn.Click += (s, e) =>
                     {
-                        InitCardsStatisticsPanel();
+                        InitGameStatisticsPanel("Cards");
                     };
                 }
-
+                if (i == 3)
+                {
+                    btn.Click += (s, e) =>
+                    {
+                        InitGameStatisticsPanel("SpellCheck");
+                    };
+                }
                 panelSettings.Controls.Add(btn);
             }
         }
@@ -1199,9 +1222,10 @@ namespace LearnEasy2
                 Location = new Point((panelGameCards.Width - 420) / 2, lblWord.Bottom + 70)
             };
             panelGameCards.Controls.Add(txtInput);
+            txtInput.Focus();
 
             // === Кнопка Confirm ===
-            Button btnConfirm = new Button
+            btnConfirmC = new Button
             {
                 Text = "Confirm",
                 Font = new Font("Segoe UI", 12F, FontStyle.Bold),
@@ -1211,8 +1235,8 @@ namespace LearnEasy2
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat
             };
-            btnConfirm.FlatAppearance.BorderSize = 0;
-            panelGameCards.Controls.Add(btnConfirm);
+            btnConfirmC.FlatAppearance.BorderSize = 0;
+            panelGameCards.Controls.Add(btnConfirmC);
 
             // === Очки ===
             Label lblPoints = new Label
@@ -1225,7 +1249,7 @@ namespace LearnEasy2
             };
             panelGameCards.Controls.Add(lblPoints);
 
-            btnConfirm.Click += (s, e) =>
+            btnConfirmC.Click += (s, e) =>
             {
                 string userAnswer = txtInput.Text.Trim().ToLower();
                 string correctAnswer = word.Item2.ToLower();
@@ -1409,7 +1433,7 @@ namespace LearnEasy2
             btnBack.Click += (s, e) => InitStatisticsPanel();
             panelSettings.Controls.Add(btnBack);
         }
-        private void InitMatchesStatisticsPanel()
+        private void InitGameStatisticsPanel(string GameName)
         {
             panelSettings.Controls.Clear();
             panelSettings.BackColor = Color.FromArgb(204, 255, 204);
@@ -1417,7 +1441,7 @@ namespace LearnEasy2
             // === Заголовок ===
             var title = new Label
             {
-                Text = "Matches Statistics",
+                Text = GameName + " Statistics",
                 Font = new Font("Segoe UI", 16, FontStyle.Bold),
                 AutoSize = true,
                 Location = new Point((panelSettings.Width - 300) / 2, 20)
@@ -1487,154 +1511,58 @@ namespace LearnEasy2
                     fromDate = DateTime.UtcNow.AddDays(-30);
 
                 var results = SqliteFunc.GetAllGameResults()
-                    .Where(r => r.GameName == "Matches" &&
+                    .Where(r => r.GameName == GameName &&
                                 (selection == "All Time" || DateTime.Parse(r.DatePlayed) >= fromDate))
                     .OrderBy(r => DateTime.Parse(r.DatePlayed))
                     .ToList();
-
-                var model = new OxyPlot.PlotModel
-                {
-                    Title = isGameCountMode ? "Games per Day" : "Performance Over Time"
-                };
-
-                var series = new OxyPlot.Series.LineSeries
-                {
-                    MarkerType = OxyPlot.MarkerType.Circle,
-                    MarkerSize = 4,
-                    MarkerStroke = OxyPlot.OxyColors.DarkGreen
-                };
-
-                if (isGameCountMode)
-                {
-                    // Группировка по дате
-                    var grouped = results
-                        .GroupBy(r => DateTime.Parse(r.DatePlayed).Date)
-                        .Select(g => new { Date = g.Key, Count = g.Count() });
-
-                    foreach (var g in grouped)
+                List<GameResultEntry> AvResults = new List<GameResultEntry>();
+                if (results.Count > 0) {
+                    if (!isGameCountMode)
                     {
-                        series.Points.Add(new OxyPlot.DataPoint(DateTimeAxis.ToDouble(g.Date), g.Count));
+                        var LeftDate = DateTime.Parse(results[0].DatePlayed);
+                        int AvPoints = 0;
+                        int DayCount = 0;
+                        int leftI = 0;
+                        for (int i = 0; i < results.Count; i++)
+                        {
+                            var RightDate = DateTime.Parse(results[i].DatePlayed);
+                            if (LeftDate.Date != RightDate.Date)
+                            {
+                                double TicksA = 0;
+                                for (int j = leftI; j < i; j++)
+                                {
+                                    TicksA += DateTime.Parse(results[j].DatePlayed).Ticks / (double)DayCount;
+                                }
+                                leftI = i;
+                                LeftDate = RightDate;
+                                GameResultEntry TempRes = new GameResultEntry();
+                                TempRes.DatePlayed = (new DateTime((long)TicksA)).ToString("s");
+                                TempRes.Points = AvPoints / DayCount;
+                                TempRes.GameName = results[i].GameName;
+                                AvPoints = 0;
+                                DayCount = 0;
+                                AvResults.Add(TempRes);
+                            }
+                            AvPoints += results[i].Points;
+                            DayCount++;
+                            if (i == results.Count - 1)
+                            {
+                                double TicksA = 0;
+                                for (int j = leftI; j <= i; j++)
+                                {
+                                    TicksA += DateTime.Parse(results[j].DatePlayed).Ticks / (double)DayCount;
+                                }
+                                LeftDate = RightDate;
+                                GameResultEntry TempRes = new GameResultEntry();
+                                TempRes.DatePlayed = (new DateTime((long)TicksA)).ToString("s");
+                                TempRes.Points = AvPoints / DayCount;
+                                TempRes.GameName = results[i].GameName;
+                                AvResults.Add(TempRes);
+                            }
+                        }
+                        results = AvResults;
                     }
                 }
-                else
-                {
-                    foreach (var r in results)
-                    {
-                        DateTime date = DateTime.Parse(r.DatePlayed);
-                        series.Points.Add(new OxyPlot.DataPoint(DateTimeAxis.ToDouble(date), r.Points));
-                    }
-                }
-
-                model.Series.Add(series);
-                model.Axes.Add(new DateTimeAxis
-                {
-                    Position = AxisPosition.Bottom,
-                    StringFormat = "dd.MM",
-                    Title = "Date",
-                    MajorGridlineStyle = LineStyle.Solid
-                });
-
-                model.Axes.Add(new LinearAxis
-                {
-                    Position = AxisPosition.Left,
-                    Title = isGameCountMode ? "Games" : "Score",
-                    Minimum = 0,
-                    MajorGridlineStyle = LineStyle.Solid
-                });
-
-                plotView.Model = model;
-            }
-
-            // === События переключения ===
-            cmbPeriod.SelectedIndexChanged += (s, e) => RefreshChart();
-            chkViewMode.CheckedChanged += (s, e) => RefreshChart();
-
-            // === Первичная инициализация ===
-            RefreshChart();
-        }
-        private void InitCardsStatisticsPanel()
-        {
-            panelSettings.Controls.Clear();
-            panelSettings.BackColor = Color.FromArgb(204, 255, 204);
-
-            // === Заголовок ===
-            var title = new Label
-            {
-                Text = "Cards Statistics",
-                Font = new Font("Segoe UI", 16, FontStyle.Bold),
-                AutoSize = true,
-                Location = new Point((panelSettings.Width - 300) / 2, 20)
-            };
-            panelSettings.Controls.Add(title);
-
-            // === Комбо выбора периода ===
-            var cmbPeriod = new ComboBox
-            {
-                Font = new Font("Segoe UI", 11),
-                Location = new Point(50, 70),
-                Width = 200,
-                DropDownStyle = ComboBoxStyle.DropDownList
-            };
-            cmbPeriod.Items.AddRange(new string[] { "Last 7 Days", "Last 30 Days", "All Time" });
-            cmbPeriod.SelectedIndex = 0;
-            panelSettings.Controls.Add(cmbPeriod);
-
-            // === Переключатель типа графика ===
-            var chkViewMode = new CheckBox
-            {
-                Text = "Show Games per Day",
-                Font = new Font("Segoe UI", 10, FontStyle.Regular),
-                AutoSize = true,
-                Location = new Point(50, 110),
-                Checked = false
-            };
-            panelSettings.Controls.Add(chkViewMode);
-
-            // === Кнопка Назад ===
-            var btnBack = new Button
-            {
-                Text = "Back",
-                Font = new Font("Segoe UI", 11, FontStyle.Bold),
-                Size = new Size(100, 35),
-                Location = new Point(50, panelSettings.Height - 60),
-                BackColor = Color.FromArgb(33, 150, 83),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
-            };
-            btnBack.FlatAppearance.BorderSize = 0;
-            btnBack.Click += (s, e) =>
-            {
-                InitStatisticsPanel();
-            };
-            panelSettings.Controls.Add(btnBack);
-
-            // === Контейнер под график ===
-            var plotView = new OxyPlot.WindowsForms.PlotView
-            {
-                Location = new Point(300, 70),
-                Size = new Size(panelSettings.Width - 350, panelSettings.Height - 100),
-                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
-            };
-            panelSettings.Controls.Add(plotView);
-
-            // === Событие обновления графика ===
-            void RefreshChart()
-            {
-                string selection = cmbPeriod.SelectedItem.ToString();
-                bool isGameCountMode = chkViewMode.Checked;
-
-                DateTime fromDate = DateTime.MinValue;
-                if (selection == "Last 7 Days")
-                    fromDate = DateTime.UtcNow.AddDays(-7);
-                else if (selection == "Last 30 Days")
-                    fromDate = DateTime.UtcNow.AddDays(-30);
-
-                var results = SqliteFunc.GetAllGameResults()
-                    .Where(r => r.GameName == "Cards" &&
-                                (selection == "All Time" || DateTime.Parse(r.DatePlayed) >= fromDate))
-                    .OrderBy(r => DateTime.Parse(r.DatePlayed))
-                    .ToList();
-
                 var model = new OxyPlot.PlotModel
                 {
                     Title = isGameCountMode ? "Games per Day" : "Performance Over Time"
